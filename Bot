@@ -1,0 +1,37 @@
+import oandapyV20
+import oandapyV20.endpoints.orders as orders
+from oandapyV20.contrib.requests import MarketOrderRequest
+
+# Initialiser la connexion à l'API OANDA
+client = oandapyV20.API(access_token='VOTRE_TOKEN_API', environment="practice")  # Changez 'practice' à 'live' pour le trading réel
+
+# Définir l'instrument pour l'or (XAU/USD)
+instrument = 'XAU_USD'
+
+# Fonction pour placer un ordre d'achat au marché
+def passer_ordre_achat(montant):
+    data = MarketOrderRequest(instrument=instrument, units=montant).data
+    r = orders.OrderCreate(accountID="VOTRE_ID_COMPTE", data=data)
+    client.request(r)
+    print('Ordre d\'achat au marché de', montant, 'unités d\'or placé.')
+
+# Fonction pour placer un ordre de vente au marché
+def passer_ordre_vente(montant):
+    data = MarketOrderRequest(instrument=instrument, units=-montant).data
+    r = orders.OrderCreate(accountID="VOTRE_ID_COMPTE", data=data)
+    client.request(r)
+    print('Ordre de vente au marché de', montant, 'unités d\'or placé.')
+
+# Fonction principale de trading
+def trading():
+    # Exemple de stratégie de trading : achat si l'or est sous un certain prix
+    prix_actuel = float(client.request(oandapyV20.endpoints.pricing.PricingInfo(accountID="VOTRE_ID_COMPTE", params={"instruments": instrument})).get("prices")[0].get("bids")[0].get("price"))
+    if prix_actuel < 1800:  # Exemple : acheter si le prix de l'or est inférieur à 1800 USD l'once
+        passer_ordre_achat(100)  # Exemple : acheter 100 onces d'or
+    # Exemple de stratégie de trading : vente si l'or est au-dessus d'un certain prix
+    elif prix_actuel > 1850:  # Exemple : vendre si le prix de l'or est supérieur à 1850 USD l'once
+        passer_ordre_vente(100)  # Exemple : vendre 100 onces d'or
+
+# Exécution du bot
+if __name__ == "__main__":
+    trading()
